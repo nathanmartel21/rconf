@@ -22,3 +22,4 @@ rconf playbooks/main.yml -i inventory/hosts.yml
 
 *   **`apt` Module**: Manage packages on Debian/Ubuntu-based systems (update, install, remove, purge, etc.).
 *   **`mkdir` Module**: Create and manage directories on target systems (specify paths, permissions, etc.).
+*   **`touch` Module**: Create and manage files on target systems (specify paths, permissions, etc.).
