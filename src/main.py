@@ -2,7 +2,8 @@ import argparse
 import sys
 import yaml
 import paramiko
-from modules import apt, dnf, mkdir
+import os
+import importlib
 
 class Colors:
     OKGREEN = '\033[92m'
@@ -12,11 +13,16 @@ class Colors:
     CYAN = '\033[96m'
     ENDC = '\033[0m'
 
-AVAILABLE_MODULES = {
-    'rconf:apt': apt,
-    'rconf:dnf': dnf,
-    'rconf:mkdir': mkdir
-}
+AVAILABLE_MODULES = {}
+_modules_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'modules')
+if os.path.exists(_modules_dir):
+    for _filename in os.listdir(_modules_dir):
+        if _filename.endswith('.py') and not _filename.startswith('__'):
+            _module_name = _filename[:-3]
+            try:
+                AVAILABLE_MODULES[f'rconf:{_module_name}'] = importlib.import_module(f'modules.{_module_name}')
+            except Exception as e:
+                print(f"{Colors.WARNING}Warning: Failed to load module {_module_name}: {e}{Colors.ENDC}")
 
 def execute_task(task_name: str, module_name: str, params: dict, ssh_client, password: str = None):
     """Routes the task to the appropriate Python module and executes it via SSH."""
