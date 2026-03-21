@@ -1,0 +1,11 @@
+[project]
+name = "rconf"
+site_name = "rconf Documentation"
+description = "My own IAC tool (Ansible-like)"
+
+[docs]
+source_dir = "docs"
+output_dir = "site"
+
+[[docs.pages]]
+file = "apt.md"

@@ -24,6 +24,9 @@ def execute_task(task_name: str, module_name: str, params: dict, ssh_client, pas
     if module_name in AVAILABLE_MODULES:
         target_module = AVAILABLE_MODULES[module_name]
         try:
+            if not hasattr(target_module, 'run'):
+                raise ValueError(f"Target module '{module_name}' is improperly configured (missing 'run' function).")
+                
             command = target_module.run(params)
             
             stdin, stdout, stderr = ssh_client.exec_command(command)
@@ -61,6 +64,14 @@ def apply_configuration(playbook_path: str, inventory_path: str):
             playbook = yaml.safe_load(file)
     except Exception as e:
         print(f"{Colors.FAIL}ERROR: Failed to read configuration files: {e}{Colors.ENDC}")
+        return
+
+    if not inventory:
+        print(f"{Colors.FAIL}ERROR: Inventory file '{inventory_path}' is empty or invalid.{Colors.ENDC}")
+        return
+
+    if not playbook:
+        print(f"{Colors.FAIL}ERROR: Playbook file '{playbook_path}' is empty or invalid.{Colors.ENDC}")
         return
 
     targets = playbook.get('targets')
@@ -107,8 +118,8 @@ def apply_configuration(playbook_path: str, inventory_path: str):
 def main():
     parser = argparse.ArgumentParser(description="rconf - A minimalist IaC tool inspired by Ansible.")
     
-    parser.add_argument('playbook', help="The configuration file describing the desired state (e.g., playbook.yml)")
-    parser.add_argument('-i', '--inventory', default="hosts.yml", help="The server inventory file")
+    parser.add_argument('playbook', help="The configuration file describing the desired state (e.g., playbooks/playbook.yml)")
+    parser.add_argument('-i', '--inventory', default="inventory/inventory.yml", help="The server inventory file")
     
     args = parser.parse_args()
     
