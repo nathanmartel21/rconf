@@ -21,3 +21,4 @@ rconf playbooks/main.yml -i inventory/hosts.yml
 `rconf` provides various modules to interact with and configure your target systems:
 
 *   **`apt` Module**: Manage packages on Debian/Ubuntu-based systems (update, install, remove, purge, etc.).
+*   **`mkdir` Module**: Create and manage directories on target systems (specify paths, permissions, etc.).

@@ -2,7 +2,7 @@ import argparse
 import sys
 import yaml
 import paramiko
-from modules import apt, dnf
+from modules import apt, dnf, mkdir
 
 class Colors:
     OKGREEN = '\033[92m'
@@ -14,7 +14,8 @@ class Colors:
 
 AVAILABLE_MODULES = {
     'rconf:apt': apt,
-    'rconf:dnf': dnf
+    'rconf:dnf': dnf,
+    'rconf:mkdir': mkdir
 }
 
 def execute_task(task_name: str, module_name: str, params: dict, ssh_client, password: str = None):
