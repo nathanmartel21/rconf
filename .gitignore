@@ -1,0 +1,18 @@
+# Environnements virtuels
+venv/
+env/
+
+# Fichiers compilés Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Dossiers générés par setup.py (build / packaging)
+build/
+dist/
+*.egg-info/
+
+# Fichiers systèmes et éditeurs (optionnel mais recommandé)
+.vscode/
+.idea/
+.DS_Store
