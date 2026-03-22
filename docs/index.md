@@ -21,6 +21,7 @@ rconf playbooks/main.yml -i inventory/hosts.yml
 `rconf` provides various modules to interact with and configure your target systems:
 
 *   **`apt` Module**: Manage packages on Debian/Ubuntu-based systems (update, install, remove, purge, etc.).
+*   **`daemon` Module**: Manage systemd services (start, stop, restart, enable, disable).
 *   **`cp` Module**: Copy files and directories on remote target systems.
 *   **`mkdir` Module**: Create and manage directories on target systems (specify paths, permissions, etc.).
 *   **`mv` Module**: Move or rename files and directories on remote target systems.
