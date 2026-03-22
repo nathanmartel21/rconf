@@ -27,4 +27,7 @@ To build and launch the documentation locally, run the following commands:
 pip install zensical
 zensical build
 zensical serve
+
+# Documentation is available at http://localhost:8001
 ```
+
