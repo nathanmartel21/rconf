@@ -9,14 +9,12 @@ def run(params: dict) -> str:
         
     cmds = []
     
-    # Gestion du démarrage automatique (enable/disable)
     if enabled is not None:
         if str(enabled).lower() in ['true', 'yes', '1']:
             cmds.append(f"systemctl enable {name}")
         else:
             cmds.append(f"systemctl disable {name}")
             
-    # Gestion du statut du service (start/stop/restart/reload)
     if status:
         if status in ['start', 'stop', 'restart', 'reload']:
             action = status.replace('ed', '')
@@ -25,7 +23,6 @@ def run(params: dict) -> str:
             raise ValueError(f"Invalid status '{status}' for daemon module. Allowed: start, stop, restart, reload.")
             
     if not cmds:
-        # Si ni 'status' ni 'enabled' ne sont fournis, on ne fait rien
         return "true"
         
     bash_cmd = " && ".join(cmds)
