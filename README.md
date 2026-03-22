@@ -1,5 +1,30 @@
-# rconf
-My own IAC tool (Ansible-like)
+# rconf - remote configuration 
 
-## Architecture prévue
-`rconf` est un outil d'Infrastructure as Code sans agent, qui se connecte aux serveurs via SSH pour appliquer des configurations de manière idempotente.
+My own IAC tool (ansible-like)
+
+`rconf` is an agentless Infrastructure as Code (IaC) tool that connects to servers via SSH to apply configurations idempotently.
+
+## Installation & Usage
+
+To start using `rconf`, it is recommended to set up a Python virtual environment and install the package in editable mode:
+
+```bash
+python3 -m venv venv
+source venv/bin/activate
+
+# Install rconf in editable mode
+pip install -e .
+rconf -h
+```
+
+## Documentation
+
+The documentation for this project is built and managed with **Zensical**. 
+
+To build and launch the documentation locally, run the following commands:
+
+```bash
+pip install zensical
+zensical build
+zensical serve
+```
