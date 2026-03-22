@@ -30,4 +30,3 @@ zensical serve
 
 # Documentation is available at http://localhost:8001
 ```
-
