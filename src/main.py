@@ -28,6 +28,9 @@ def execute_task(task_name: str, module_name: str, params: dict, ssh_client, pas
     """Routes the task to the appropriate Python module and executes it via SSH."""
     print(f"    * Executing [{module_name}] : {task_name}... ", end="", flush=True)
     
+    # Récupère l'option show_output de façon sécurisée
+    show_output = params.get('show_output', False) if isinstance(params, dict) else False
+
     if module_name in AVAILABLE_MODULES:
         target_module = AVAILABLE_MODULES[module_name]
         try:
@@ -45,12 +48,18 @@ def execute_task(task_name: str, module_name: str, params: dict, ssh_client, pas
             
             # Wait for execution to finish to retrieve the exit code
             exit_status = stdout.channel.recv_exit_status()
+            out = stdout.read().decode('utf-8').strip()
             err = stderr.read().decode('utf-8').strip()
             
             if exit_status == 0:
                 print(f"{Colors.OKGREEN}OK{Colors.ENDC}")
+                if show_output and out:
+                    for line in out.splitlines():
+                        print(f"        | {line}{Colors.ENDC}")
             else:
                 print(f"{Colors.FAIL}FAILED (Exit: {exit_status}){Colors.ENDC}")
+                if show_output and out:
+                    print(f"{Colors.WARNING}      Stdout:\n{out}{Colors.ENDC}")
                 if err:
                     print(f"{Colors.WARNING}      Stderr: {err}{Colors.ENDC}")
                     
