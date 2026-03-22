@@ -4,6 +4,7 @@ import yaml
 import paramiko
 import os
 import importlib
+import re
 
 class Colors:
     OKGREEN = '\033[92m'
@@ -139,9 +140,60 @@ def apply_configuration(playbook_path: str, inventory_path: str):
             
             for job in playbook.get('jobs', []):
                 task_name = job.get('name', 'Anonymous Job')
-                for key, value in job.items():
-                    if key != 'name':
-                        execute_task(task_name, key, value, client, password, host_vars)
+                
+                condition = job.get('if')
+                condition_met = True
+                
+                if condition:
+                    eval_cond = condition
+                    for k, v in host_vars.items():
+                        safe_val = str(v).replace('\\', '\\\\').replace('\n', '\\n').replace('\r', '\\r').replace("'", "\\'")
+                        eval_cond = eval_cond.replace(f"<< {k} >>", safe_val).replace(f"<<{k}>>", safe_val)
+                    try:
+                        condition_met = bool(eval(eval_cond))
+                    except Exception as e:
+                        print(f"{Colors.WARNING}    * Skipping [{task_name}] : Eval error on '{condition}' -> {e}{Colors.ENDC}")
+                        continue
+
+                if condition_met:
+                    for key, value in job.items():
+                        if key not in ['name', 'if', 'elif', 'else']:
+                            execute_task(task_name, key, value, client, password, host_vars)
+                else:
+                    elif_executed = False
+                    elif_blocks = job.get('elif', [])
+                    if isinstance(elif_blocks, dict):
+                        elif_blocks = [elif_blocks]
+                    elif elif_blocks and not isinstance(elif_blocks, list):
+                        print(f"{Colors.WARNING}    ! Syntax warning [{task_name}] : 'elif' must be indented as a block (dictionary or list).{Colors.ENDC}")
+                        elif_blocks = []
+                        
+                    for elif_block in elif_blocks:
+                        elif_cond = elif_block.get('if')
+                        if elif_cond:
+                            eval_cond = elif_cond
+                            for k, v in host_vars.items():
+                                safe_val = str(v).replace('\\', '\\\\').replace('\n', '\\n').replace('\r', '\\r').replace("'", "\\'")
+                                eval_cond = eval_cond.replace(f"<< {k} >>", safe_val).replace(f"<<{k}>>", safe_val)
+                            try:
+                                if bool(eval(eval_cond)):
+                                    elif_executed = True
+                                    for key, value in elif_block.items():
+                                        if key != 'if':
+                                            execute_task(f"{task_name} (elif)", key, value, client, password, host_vars)
+                                    break
+                            except Exception as e:
+                                print(f"{Colors.WARNING}    * Skipping [{task_name} (elif)] : Eval error on '{elif_cond}' -> {e}{Colors.ENDC}")
+                    
+                    if not elif_executed:
+                        if 'else' in job:
+                            if isinstance(job['else'], dict):
+                                for key, value in job['else'].items():
+                                    execute_task(f"{task_name} (else)", key, value, client, password, host_vars)
+                            else:
+                                print(f"{Colors.WARNING}    ! Syntax warning [{task_name}] : 'else' must be indented as a block (dictionary).{Colors.ENDC}")
+                        elif condition is not None:
+                            print(f"{Colors.CYAN}    * Skipping [{task_name}] : Condition not met{Colors.ENDC}")
                         
         except Exception as e:
             print(f"{Colors.FAIL}    ! Connection or execution error on {ip}: {e}{Colors.ENDC}")
