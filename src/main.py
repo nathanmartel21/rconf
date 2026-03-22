@@ -24,12 +24,29 @@ if os.path.exists(_modules_dir):
             except Exception as e:
                 print(f"{Colors.WARNING}Warning: Failed to load module {_module_name}: {e}{Colors.ENDC}")
 
-def execute_task(task_name: str, module_name: str, params: dict, ssh_client, password: str = None):
+def execute_task(task_name: str, module_name: str, params: dict, ssh_client, password: str = None, host_vars: dict = None):
     """Routes the task to the appropriate Python module and executes it via SSH."""
     print(f"    * Executing [{module_name}] : {task_name}... ", end="", flush=True)
     
-    # Récupère l'option show_output de façon sécurisée
+    if host_vars is None:
+        host_vars = {}
+
+    def inject_vars(data):
+        if isinstance(data, str):
+            for k, v in host_vars.items():
+                data = data.replace(f"<< {k} >>", str(v)).replace(f"<<{k}>>", str(v))
+            return data
+        elif isinstance(data, dict):
+            return {k: inject_vars(v) for k, v in data.items()}
+        elif isinstance(data, list):
+            return [inject_vars(v) for v in data]
+        return data
+
+    if isinstance(params, dict):
+        params = inject_vars(params)
+
     show_output = params.get('show_output', False) if isinstance(params, dict) else False
+    save_var = params.get('save') if isinstance(params, dict) else None
 
     if module_name in AVAILABLE_MODULES:
         target_module = AVAILABLE_MODULES[module_name]
@@ -53,6 +70,8 @@ def execute_task(task_name: str, module_name: str, params: dict, ssh_client, pas
             
             if exit_status == 0:
                 print(f"{Colors.OKGREEN}OK{Colors.ENDC}")
+                if save_var:
+                    host_vars[save_var] = f"\n{out}" if out else ""
                 if show_output and out:
                     for line in out.splitlines():
                         print(f"        | {line}{Colors.ENDC}")
@@ -107,6 +126,8 @@ def apply_configuration(playbook_path: str, inventory_path: str):
         port = host.get('port', 22)
         password = host.get('password')
         
+        host_vars = {}
+        
         print(f"\n{Colors.HEADER}▶ Target Host: {ip} (User: {user}, Port: {port}){Colors.ENDC}")
         print(f"{Colors.HEADER}--------------------------------------------------------------{Colors.ENDC}")
         
@@ -120,7 +141,7 @@ def apply_configuration(playbook_path: str, inventory_path: str):
                 task_name = job.get('name', 'Anonymous Job')
                 for key, value in job.items():
                     if key != 'name':
-                        execute_task(task_name, key, value, client, password)
+                        execute_task(task_name, key, value, client, password, host_vars)
                         
         except Exception as e:
             print(f"{Colors.FAIL}    ! Connection or execution error on {ip}: {e}{Colors.ENDC}")

@@ -13,6 +13,7 @@ The module is called via the `rconf:exec:` key in a playbook job.
 * **`creates`** *(optional)*: A filename; if it already exists, this step won't be run (useful for idempotence).
 * **`removes`** *(optional)*: A filename; if it does not exist, this step won't be run (useful for idempotence).
 * **`show_output`** *(optional)*: A boolean (`true` or `false`). If set to `true`, the standard output of the command will be printed in the console (useful for commands like `df -h`).
+* **`save`** *(optional)*: A variable name to store the standard output of the command. This variable can be reused later with `<< variable_name >>`.
 
 ---
 
@@ -49,4 +50,18 @@ Download a file only if it hasn't been downloaded yet.
     run: "wget https://example.com/node_exporter.tar.gz"
     chdir: "/tmp"
     creates: "/tmp/node_exporter.tar.gz"
+```
+
+### Example with save
+Save the output of a command in a variable.
+```yaml
+- name: "Store disk usage information"
+  rconf:exec:
+    run: "df -h"
+    save: disk
+
+- name: "Print disk usage variable"
+  rconf:print:
+    msg: "<< disk >>"
+    color: yellow
 ```
