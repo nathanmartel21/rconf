@@ -19,7 +19,16 @@ def run(params: dict) -> str:
     c_start = colors.get(color, "")
     c_end = colors['end'] if c_start else ""
     
-    print(f"\n      => MSG: {c_start}{msg}{c_end}")
+    if isinstance(msg, str):
+        msg = msg.replace('\\n', '\n')
+        
+    lines = str(msg).splitlines()
+    if not lines:
+        print(f"\n       {c_start}{c_end}")
+    else:
+        print(f"\n       {c_start}{lines[0]}{c_end}")
+        for line in lines[1:]:
+            print(f"         | {c_start}{line}{c_end}")
     
     if file_path:
         escaped_msg = str(msg).replace("'", "'\\''")
