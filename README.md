@@ -19,7 +19,7 @@ rconf -h
 
 ## Documentation
 
-The documentation for this project is built and managed with **Zensical**. 
+The documentation for this project is built and managed with [Zensical](https://zensical.org/)
 
 To build and launch the documentation locally, run the following commands:
 
