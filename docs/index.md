@@ -31,6 +31,7 @@ rconf playbooks/main.yml -i inventory/hosts.yml
 *   **`ping` Module**: Check network connectivity from remote target systems
 *   **`pip` Module**: Manage Python packages using the pip package manager.
 *   **`print` Module**: Print messages during playbook execution (useful for debugging).
+*   **`reboot` Module**: Reboot the target system.
 *   **`rm` Module**: Remove files on target systems safely and idempotently.
 *   **`rmdir` Module**: Remove directories on target systems safely and idempotently.
 *   **`sleep` Module**: Pause playbook execution for a specified amount of time.
