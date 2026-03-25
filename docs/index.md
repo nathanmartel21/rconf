@@ -31,3 +31,4 @@ rconf playbooks/main.yml -i inventory/hosts.yml
 *   **`rm` Module**: Remove files on target systems safely and idempotently.
 *   **`rmdir` Module**: Remove directories on target systems safely and idempotently.
 *   **`touch` Module**: Create and manage files on target systems (specify paths, permissions, etc.).
+*   **`user` Module**: Create and manage user accounts (allows plain-text passwords natively).
