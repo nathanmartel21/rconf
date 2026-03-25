@@ -5,6 +5,8 @@ import paramiko
 import os
 import importlib
 import re
+import json
+import base64
 
 class Colors:
     OKGREEN = '\033[92m'
@@ -142,6 +144,115 @@ def apply_configuration(playbook_path: str, inventory_path: str):
         try:
             client.connect(hostname=ip, port=port, username=user, password=password, key_filename=key_file)
             
+            if playbook.get('inspect_system', True):
+                print(f"    * Inspecting system environment... ", end="", flush=True)
+                sys_info_script = """
+import platform, json, socket, os
+try:
+    import pwd
+except ImportError:
+    pwd = None
+info = {}
+info['sys_hostname'] = socket.gethostname()
+info['sys_arch'] = platform.machine()
+info['sys_platform'] = platform.system()
+try:
+    info['sys_user'] = os.getlogin()
+except Exception:
+    try:
+        info['sys_user'] = os.environ.get('USER') or (pwd.getpwuid(os.getuid())[0] if pwd else 'unknown')
+    except Exception:
+        info['sys_user'] = 'unknown'
+try:
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    s.connect(("8.8.8.8", 80))
+    info['sys_ipv4'] = s.getsockname()[0]
+    s.close()
+except Exception:
+    info['sys_ipv4'] = '127.0.0.1'
+info['sys_distro'] = 'unknown'
+info['sys_distro_version'] = 'unknown'
+info['sys_distro_like'] = 'unknown'
+try:
+    with open('/etc/os-release') as f:
+        for line in f:
+            line = line.strip()
+            if line.startswith('ID='):
+                info['sys_distro'] = line.split('=', 1)[1].strip('"').strip("'")
+            elif line.startswith('VERSION_ID='):
+                info['sys_distro_version'] = line.split('=', 1)[1].strip('"').strip("'")
+            elif line.startswith('ID_LIKE='):
+                info['sys_distro_like'] = line.split('=', 1)[1].strip('"').strip("'")
+except Exception:
+    pass
+try:
+    info['sys_cpu_cores'] = os.cpu_count() or 1
+except Exception:
+    info['sys_cpu_cores'] = 'unknown'
+try:
+    info['sys_swap_total_mb'] = 'unknown'
+    info['sys_swap_free_mb'] = 'unknown'
+    with open('/proc/meminfo') as f:
+        for line in f:
+            if line.startswith('MemTotal:'):
+                info['sys_mem_total_mb'] = int(line.split()[1]) // 1024
+            elif line.startswith('MemFree:'):
+                info['sys_mem_free_mb'] = int(line.split()[1]) // 1024
+            elif line.startswith('SwapTotal:'):
+                info['sys_swap_total_mb'] = int(line.split()[1]) // 1024
+            elif line.startswith('SwapFree:'):
+                info['sys_swap_free_mb'] = int(line.split()[1]) // 1024
+except Exception:
+    info['sys_mem_total_mb'] = 'unknown'
+    info['sys_mem_free_mb'] = 'unknown'
+info['sys_kernel_version'] = platform.release()
+try:
+    with open('/proc/uptime') as f:
+        info['sys_uptime_seconds'] = int(float(f.readline().split()[0]))
+except Exception:
+    info['sys_uptime_seconds'] = 'unknown'
+try:
+    load = os.getloadavg()
+    info['sys_load_1m'], info['sys_load_5m'], info['sys_load_15m'] = load[0], load[1], load[2]
+except Exception:
+    info['sys_load_1m'], info['sys_load_5m'], info['sys_load_15m'] = 'unknown', 'unknown', 'unknown'
+import time
+try:
+    with open('/etc/timezone') as f:
+        info['sys_timezone'] = f.read().strip()
+except Exception:
+    info['sys_timezone'] = time.tzname[0]
+try:
+    import shutil
+    st = shutil.disk_usage('/')
+    info['sys_disk_total_gb'] = st.total // (1024**3)
+    info['sys_disk_free_gb'] = st.free // (1024**3)
+    info['sys_has_docker'] = bool(shutil.which('docker'))
+    info['sys_has_systemd'] = bool(shutil.which('systemctl'))
+except Exception:
+    info['sys_disk_total_gb'] = 'unknown'
+    info['sys_disk_free_gb'] = 'unknown'
+    info['sys_has_docker'] = False
+    info['sys_has_systemd'] = False
+info['sys_python_version'] = platform.python_version()
+print(json.dumps(info))
+"""
+                encoded_script = base64.b64encode(sys_info_script.encode('utf-8')).decode('utf-8')
+                cmd = f"python3 -c \"import base64, sys; exec(base64.b64decode(sys.argv[1]).decode('utf-8'))\" \"{encoded_script}\""
+                stdin, stdout, stderr = client.exec_command(cmd)
+                exit_status = stdout.channel.recv_exit_status()
+                out = stdout.read().decode('utf-8').strip()
+                
+                if exit_status == 0:
+                    try:
+                        sys_data = json.loads(out)
+                        host_vars.update(sys_data)
+                        print(f"{Colors.OKGREEN}OK{Colors.ENDC}")
+                    except Exception as e:
+                        print(f"{Colors.WARNING}FAILED (JSON Parse: {e}){Colors.ENDC}")
+                else:
+                    print(f"{Colors.WARNING}FAILED (Exit Code: {exit_status}){Colors.ENDC}")
+
             for job in playbook.get('jobs', []):
                 base_task_name = job.get('name', 'Anonymous Job')
                 

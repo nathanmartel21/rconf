@@ -40,3 +40,12 @@ rconf playbooks/main.yml -i inventory/hosts.yml
 *   **`user` Module**: Create and manage user accounts (allows plain-text passwords natively).
 *   **`whoami` Module**: A fun module to display the hostname and IP of the target system.
 *   **`yum` Module**: Manage packages on older RHEL/CentOS-based systems using the YUM package manager.
+
+## Advanced Features
+
+`rconf` provides powerful features to create dynamic and intelligent playbooks:
+
+*   **System Inspection (`inspect_system`)**: Automatically discover system attributes (like distribution, architecture, IP) to adapt your playbook to the target environment.
+*   **Conditional Execution (`if`/`elif`/`else`)**: Control the execution flow by running tasks only when specific conditions are met.
+*   **Iterations (`foreach`)**: Repeat a task multiple times over a list of items or the output of a previous command.
+*   **Loops (`while`)**: Execute a task continuously until a specific condition is met, perfect for polling or waiting for a service.
