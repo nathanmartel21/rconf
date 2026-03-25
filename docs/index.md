@@ -38,4 +38,5 @@ rconf playbooks/main.yml -i inventory/hosts.yml
 *   **`sleep` Module**: Pause playbook execution for a specified amount of time.
 *   **`touch` Module**: Create and manage files on target systems (specify paths, permissions, etc.).
 *   **`user` Module**: Create and manage user accounts (allows plain-text passwords natively).
+*   **`whoami` Module**: A fun module to display the hostname and IP of the target system.
 *   **`yum` Module**: Manage packages on older RHEL/CentOS-based systems using the YUM package manager.
