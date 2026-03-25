@@ -25,6 +25,7 @@ rconf playbooks/main.yml -i inventory/hosts.yml
 *   **`cp` Module**: Copy files and directories on remote target systems.
 *   **`dnf` Module**: Manage packages on RHEL/Fedora/CentOS-based systems.
 *   **`exec` Module**: Run arbitrary shell commands (with idempotence support via creates/removes).
+*   **`git` Module**: Manage Git repositories (clone, pull, fetch, etc.).
 *   **`group` Module**: Create and manage user groups.
 *   **`mkdir` Module**: Create and manage directories on target systems (specify paths, permissions, etc.).
 *   **`mv` Module**: Move or rename files and directories on remote target systems.
