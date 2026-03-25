@@ -139,61 +139,90 @@ def apply_configuration(playbook_path: str, inventory_path: str):
             client.connect(hostname=ip, port=port, username=user, password=password)
             
             for job in playbook.get('jobs', []):
-                task_name = job.get('name', 'Anonymous Job')
+                base_task_name = job.get('name', 'Anonymous Job')
                 
-                condition = job.get('if')
-                condition_met = True
-                
-                if condition:
-                    eval_cond = condition
-                    for k, v in host_vars.items():
-                        safe_val = str(v).replace('\\', '\\\\').replace('\n', '\\n').replace('\r', '\\r').replace("'", "\\'")
-                        eval_cond = eval_cond.replace(f"<< {k} >>", safe_val).replace(f"<<{k}>>", safe_val)
-                    try:
-                        condition_met = bool(eval(eval_cond))
-                    except Exception as e:
-                        print(f"{Colors.WARNING}    * Skipping [{task_name}] : Eval error on '{condition}' -> {e}{Colors.ENDC}")
-                        continue
-
-                if condition_met:
-                    for key, value in job.items():
-                        if key not in ['name', 'if', 'elif', 'else']:
-                            execute_task(task_name, key, value, client, password, host_vars)
+                raw_loop = job.get('foreach')
+                if raw_loop is not None:
+                    # Support loops over a saved variable from previous command
+                    if isinstance(raw_loop, str) and raw_loop.strip().startswith("<<") and raw_loop.strip().endswith(">>"):
+                        var_name = raw_loop.strip("<> ").strip()
+                        loop_items = host_vars.get(var_name, [])
+                        if isinstance(loop_items, str):
+                            loop_items = [i.strip() for i in loop_items.split('\n') if i.strip()]
+                    elif isinstance(raw_loop, list):
+                        loop_items = raw_loop
+                    else:
+                        loop_items = [raw_loop]
                 else:
-                    elif_executed = False
-                    elif_blocks = job.get('elif', [])
-                    if isinstance(elif_blocks, dict):
-                        elif_blocks = [elif_blocks]
-                    elif elif_blocks and not isinstance(elif_blocks, list):
-                        print(f"{Colors.WARNING}    ! Syntax warning [{task_name}] : 'elif' must be indented as a block (dictionary or list).{Colors.ENDC}")
-                        elif_blocks = []
-                        
-                    for elif_block in elif_blocks:
-                        elif_cond = elif_block.get('if')
-                        if elif_cond:
-                            eval_cond = elif_cond
-                            for k, v in host_vars.items():
-                                safe_val = str(v).replace('\\', '\\\\').replace('\n', '\\n').replace('\r', '\\r').replace("'", "\\'")
-                                eval_cond = eval_cond.replace(f"<< {k} >>", safe_val).replace(f"<<{k}>>", safe_val)
-                            try:
-                                if bool(eval(eval_cond)):
-                                    elif_executed = True
-                                    for key, value in elif_block.items():
-                                        if key != 'if':
-                                            execute_task(f"{task_name} (elif)", key, value, client, password, host_vars)
-                                    break
-                            except Exception as e:
-                                print(f"{Colors.WARNING}    * Skipping [{task_name} (elif)] : Eval error on '{elif_cond}' -> {e}{Colors.ENDC}")
+                    loop_items = [None]
                     
-                    if not elif_executed:
-                        if 'else' in job:
-                            if isinstance(job['else'], dict):
-                                for key, value in job['else'].items():
-                                    execute_task(f"{task_name} (else)", key, value, client, password, host_vars)
-                            else:
-                                print(f"{Colors.WARNING}    ! Syntax warning [{task_name}] : 'else' must be indented as a block (dictionary).{Colors.ENDC}")
-                        elif condition is not None:
-                            print(f"{Colors.CYAN}    * Skipping [{task_name}] : Condition not met{Colors.ENDC}")
+                for item in loop_items:
+                    # Inject value variable into host_vars context for this iteration
+                    if raw_loop is not None:
+                        host_vars['value'] = item
+                        if isinstance(item, dict):
+                            for k, v in item.items():
+                                host_vars[f"value_{k}"] = v
+                            task_name = f"{base_task_name} [value=dict]"
+                        else:
+                            task_name = f"{base_task_name} [value={item}]"
+                    else:
+                        task_name = base_task_name
+
+                    condition = job.get('if')
+                    condition_met = True
+                    
+                    if condition:
+                        eval_cond = condition
+                        for k, v in host_vars.items():
+                            safe_val = str(v).replace('\\', '\\\\').replace('\n', '\\n').replace('\r', '\\r').replace("'", "\\'")
+                            eval_cond = eval_cond.replace(f"<< {k} >>", safe_val).replace(f"<<{k}>>", safe_val)
+                        try:
+                            condition_met = bool(eval(eval_cond))
+                        except Exception as e:
+                            print(f"{Colors.WARNING}    * Skipping [{task_name}] : Eval error on '{condition}' -> {e}{Colors.ENDC}")
+                            continue
+
+                    if condition_met:
+                        for key, value in job.items():
+                            if key not in ['name', 'if', 'elif', 'else', 'foreach']:
+                                execute_task(task_name, key, value, client, password, host_vars)
+                    else:
+                        elif_executed = False
+                        elif_blocks = job.get('elif', [])
+                        if isinstance(elif_blocks, dict):
+                            elif_blocks = [elif_blocks]
+                        elif elif_blocks and not isinstance(elif_blocks, list):
+                            print(f"{Colors.WARNING}    ! Syntax warning [{task_name}] : 'elif' must be indented as a block (dictionary or list).{Colors.ENDC}")
+                            elif_blocks = []
+                            
+                        for elif_block in elif_blocks:
+                            elif_cond = elif_block.get('if')
+                            if elif_cond:
+                                eval_cond = elif_cond
+                                for k, v in host_vars.items():
+                                    safe_val = str(v).replace('\\', '\\\\').replace('\n', '\\n').replace('\r', '\\r').replace("'", "\\'")
+                                    eval_cond = eval_cond.replace(f"<< {k} >>", safe_val).replace(f"<<{k}>>", safe_val)
+                                try:
+                                    if bool(eval(eval_cond)):
+                                        elif_executed = True
+                                        for key, value in elif_block.items():
+                                            if key not in ['if', 'foreach']:
+                                                execute_task(f"{task_name} (elif)", key, value, client, password, host_vars)
+                                        break
+                                except Exception as e:
+                                    print(f"{Colors.WARNING}    * Skipping [{task_name} (elif)] : Eval error on '{elif_cond}' -> {e}{Colors.ENDC}")
+                        
+                        if not elif_executed:
+                            if 'else' in job:
+                                if isinstance(job['else'], dict):
+                                    for key, value in job['else'].items():
+                                        if key != 'foreach':
+                                            execute_task(f"{task_name} (else)", key, value, client, password, host_vars)
+                                else:
+                                    print(f"{Colors.WARNING}    ! Syntax warning [{task_name}] : 'else' must be indented as a block (dictionary).{Colors.ENDC}")
+                            elif condition is not None:
+                                print(f"{Colors.CYAN}    * Skipping [{task_name}] : Condition not met{Colors.ENDC}")
                         
         except Exception as e:
             print(f"{Colors.FAIL}    ! Connection or execution error on {ip}: {e}{Colors.ENDC}")
