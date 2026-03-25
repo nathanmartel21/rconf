@@ -24,6 +24,7 @@ rconf playbooks/main.yml -i inventory/hosts.yml
 *   **`daemon` Module**: Manage systemd services (start, stop, restart, enable, disable).
 *   **`cp` Module**: Copy files and directories on remote target systems.
 *   **`exec` Module**: Run arbitrary shell commands (with idempotence support via creates/removes).
+*   **`group` Module**: Create and manage user groups.
 *   **`mkdir` Module**: Create and manage directories on target systems (specify paths, permissions, etc.).
 *   **`mv` Module**: Move or rename files and directories on remote target systems.
 *   **`ping` Module**: Check network connectivity from remote target systems
