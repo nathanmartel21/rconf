@@ -34,3 +34,4 @@ rconf playbooks/main.yml -i inventory/hosts.yml
 *   **`rmdir` Module**: Remove directories on target systems safely and idempotently.
 *   **`touch` Module**: Create and manage files on target systems (specify paths, permissions, etc.).
 *   **`user` Module**: Create and manage user accounts (allows plain-text passwords natively).
+*   **`yum` Module**: Manage packages on older RHEL/CentOS-based systems using the YUM package manager.
