@@ -29,6 +29,7 @@ rconf playbooks/main.yml -i inventory/hosts.yml
 *   **`mkdir` Module**: Create and manage directories on target systems (specify paths, permissions, etc.).
 *   **`mv` Module**: Move or rename files and directories on remote target systems.
 *   **`ping` Module**: Check network connectivity from remote target systems
+*   **`pip` Module**: Manage Python packages using the pip package manager.
 *   **`print` Module**: Print messages during playbook execution (useful for debugging).
 *   **`rm` Module**: Remove files on target systems safely and idempotently.
 *   **`rmdir` Module**: Remove directories on target systems safely and idempotently.
