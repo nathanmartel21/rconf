@@ -126,6 +126,10 @@ def apply_configuration(playbook_path: str, inventory_path: str):
         user = host.get('user')
         port = host.get('port', 22)
         password = host.get('password')
+        key_file = host.get('key_file')
+        
+        if key_file:
+            key_file = os.path.expanduser(key_file)
         
         host_vars = {}
         
@@ -136,7 +140,7 @@ def apply_configuration(playbook_path: str, inventory_path: str):
         client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         
         try:
-            client.connect(hostname=ip, port=port, username=user, password=password)
+            client.connect(hostname=ip, port=port, username=user, password=password, key_filename=key_file)
             
             for job in playbook.get('jobs', []):
                 base_task_name = job.get('name', 'Anonymous Job')
