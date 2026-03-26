@@ -23,6 +23,7 @@ rconf playbooks/main.yml -i inventory/hosts.yml
 *   **`apt` Module**: Manage packages on Debian/Ubuntu-based systems (update, install, remove, purge, etc.).
 *   **`daemon` Module**: Manage systemd services (start, stop, restart, enable, disable).
 *   **`cp` Module**: Copy files and directories on remote target systems.
+*   **`docker` Module**: Manage Docker containers and images (run, stop, build, pull, etc.).
 *   **`dnf` Module**: Manage packages on RHEL/Fedora/CentOS-based systems.
 *   **`exec` Module**: Run arbitrary shell commands (with idempotence support via creates/removes).
 *   **`git` Module**: Manage Git repositories (clone, pull, fetch, etc.).
