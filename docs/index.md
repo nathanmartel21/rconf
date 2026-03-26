@@ -25,6 +25,7 @@ rconf playbooks/main.yml -i inventory/hosts.yml
 *   **`cp` Module**: Copy files and directories on remote target systems.
 *   **`docker` Module**: Manage Docker containers and images (run, stop, build, pull, etc.).
 *   **`dnf` Module**: Manage packages on RHEL/Fedora/CentOS-based systems.
+*   **`download` Module**: Download files from HTTP/FTP/local sources with checksum verification.
 *   **`exec` Module**: Run arbitrary shell commands (with idempotence support via creates/removes).
 *   **`git` Module**: Manage Git repositories (clone, pull, fetch, etc.).
 *   **`group` Module**: Create and manage user groups.
