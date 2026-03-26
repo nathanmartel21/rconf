@@ -52,3 +52,4 @@ rconf playbooks/main.yml -i inventory/hosts.yml
 *   **Conditional Execution (`if`/`elif`/`else`)**: Control the execution flow by running tasks only when specific conditions are met.
 *   **Iterations (`foreach`)**: Repeat a task multiple times over a list of items or the output of a previous command.
 *   **Loops (`while`)**: Execute a task continuously until a specific condition is met, perfect for polling or waiting for a service.
+*   **Ignore Failures (`ignore_failure`)**: Prevent a task failure from stopping the entire playbook execution, allowing subsequent tasks to run even if an error occurs.

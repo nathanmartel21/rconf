@@ -80,6 +80,7 @@ def execute_task(task_name: str, module_name: str, params: dict, ssh_client, pas
                         print(f"        | {line}{Colors.ENDC}")
             else:
                 print(f"{Colors.FAIL}FAILED (Exit: {exit_status}){Colors.ENDC}")
+                if not params.get('ignore_failure', False): sys.exit(1)
                 if show_output and out:
                     print(f"{Colors.WARNING}      Stdout:\n{out}{Colors.ENDC}")
                 if err:
