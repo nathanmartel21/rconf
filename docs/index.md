@@ -32,6 +32,7 @@ rconf playbooks/main.yml -i inventory/hosts.yml
 *   **`mv` Module**: Move or rename files and directories on remote target systems.
 *   **`ping` Module**: Check network connectivity from remote target systems
 *   **`pip` Module**: Manage Python packages using the pip package manager.
+*   **`podman` Module**: Manage Podman containers and images (run, stop, build, pull, etc.).
 *   **`print` Module**: Print messages during playbook execution (useful for debugging).
 *   **`reboot` Module**: Reboot the target system.
 *   **`rm` Module**: Remove files on target systems safely and idempotently.
