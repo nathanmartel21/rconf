@@ -39,6 +39,7 @@ rconf playbooks/main.yml -i inventory/hosts.yml
 *   **`rm` Module**: Remove files on target systems safely and idempotently.
 *   **`rmdir` Module**: Remove directories on target systems safely and idempotently.
 *   **`sleep` Module**: Pause playbook execution for a specified amount of time.
+*   **`tar` Module**: Compress and extract archives (tar.gz, tar.bz2, tar.xz, zip, etc.) with full control over permissions, ownership, stripping, and exclusions.
 *   **`touch` Module**: Create and manage files on target systems (specify paths, permissions, etc.).
 *   **`user` Module**: Create and manage user accounts (allows plain-text passwords natively).
 *   **`whoami` Module**: A fun module to display the hostname and IP of the target system.
